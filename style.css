@@ -1,0 +1,10 @@
+.form-row {
+    display: flex;          /* 자식 요소들을 가로로 배치 */
+    align-items: center;    /* 세로 중앙 정렬 */
+    margin-bottom: 10px;    /* 아래쪽 여백 */
+}
+
+.form-row label {
+    margin-right: 10px;     /* 라벨과 입력창 사이의 간격 */
+    white-space: nowrap;    /* 라벨 글자가 길어져도 줄바꿈 방지 */
+}
