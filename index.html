@@ -3,26 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>생활 습관 진단 프로그램 (JS 버전)</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 스타일은 이전과 동일하게 유지 */
+        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+        form div { margin-bottom: 10px; }
+        label { display: inline-block; width: 300px; }
+        input { width: 100px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result ul { list-style-type: '- '; padding-left: 20px; }
+    </style>
 </head>
 <body>
     <h1>생활 습관 진단 프로그램 📝</h1>
     <p>성적 향상을 위한 당신의 생활 습관을 점검해보세요.</p>
     
     <form onsubmit="runDiagnosis(); return false;">
-        <div class="form-row">
+        <div>
             <label for="study_hours_per_day">하루 평균 공부 시간 (시간):</label>
             <input type="number" step="0.5" id="study_hours_per_day" value="3" required>
         </div>
-        <div class="form-row">
+        <div>
             <label for="sleep_hours">하루 평균 수면 시간 (시간):</label>
             <input type="number" step="0.5" id="sleep_hours" value="7" required>
         </div>
-        <div class="form-row">
+        <div>
             <label for="exercise_frequency">일주일 평균 운동 횟수 (회)(30분이상):</label>
             <input type="number" id="exercise_frequency" value="3" required>
         </div>
-        <div class="form-row">
+        <div>
             <label for="mental_health_rating">정신건강 상태 점수 (1~10):</label>
             <input type="number" id="mental_health_rating" min="1" max="10" value="7" required>
         </div>
