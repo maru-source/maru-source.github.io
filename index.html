@@ -2,84 +2,244 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>생활 습관 진단 프로그램 (JS 버전)</title>
+    <title>트리 vs 리스트 탐색 비교</title>
     <style>
-        /* 스타일은 이전과 동일하게 유지 */
-        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
-        form div { margin-bottom: 10px; }
-        label { display: inline-block; width: 300px; }
-        input { width: 100px; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-        .result { margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
-        .result ul { list-style-type: '- '; padding-left: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f8fafc; margin: 0; padding: 20px; }
+        h2 { color: #0f172a; margin-bottom: 10px; }
+        
+        .controls { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: inline-block; margin-bottom: 20px; }
+        input[type="number"] { padding: 10px; font-size: 16px; width: 120px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
+        button { padding: 10px 20px; font-size: 16px; background-color: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        button:hover { background-color: #0284c7; }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
+        .dashboard { display: flex; justify-content: center; gap: 40px; margin-bottom: 20px; }
+        .stat-box { background: #fff; padding: 15px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-bottom: 4px solid #cbd5e1; width: 250px; }
+        .stat-box.list-stat { border-color: #f43f5e; }
+        .stat-box.tree-stat { border-color: #10b981; }
+        .stat-title { font-size: 14px; color: #64748b; font-weight: bold; margin-bottom: 5px; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #0f172a; }
+
+        /* 리스트 스타일 */
+        #list-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 auto 40px auto; max-width: 1000px; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .list-item { width: 40px; height: 40px; line-height: 40px; border-radius: 8px; background-color: #f1f5f9; border: 2px solid #e2e8f0; font-weight: bold; font-size: 14px; transition: all 0.2s; }
+        
+        /* 트리 스타일 */
+        #tree-wrapper { position: relative; width: 1000px; height: 450px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
+        #treeCanvas { position: absolute; top: 0; left: 0; z-index: 1; }
+        #treeNodes { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        .tree-node { position: absolute; width: 36px; height: 36px; line-height: 36px; border-radius: 50%; background-color: #f1f5f9; border: 2px solid #94a3b8; font-weight: bold; font-size: 14px; transform: translate(-50%, -50%); transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* 애니메이션 상태 */
+        .active-list { background-color: #fecdd3; border-color: #f43f5e; color: #9f1239; transform: scale(1.1); }
+        .found-list { background-color: #f43f5e; border-color: #be123c; color: white; transform: scale(1.1); }
+        
+        .active-tree { background-color: #d1fae5; border-color: #10b981; color: #047857; transform: translate(-50%, -50%) scale(1.3); z-index: 10; }
+        .found-tree { background-color: #10b981; border-color: #047857; color: white; transform: translate(-50%, -50%) scale(1.3); z-index: 10; }
     </style>
 </head>
 <body>
-    <h1>생활 습관 진단 프로그램 📝</h1>
-    <p>성적 향상을 위한 당신의 생활 습관을 점검해보세요.</p>
-    
-    <form onsubmit="runDiagnosis(); return false;">
-        <div>
-            <label for="study_hours_per_day">하루 평균 공부 시간 (시간):</label>
-            <input type="number" step="0.5" id="study_hours_per_day" value="3" required>
-        </div>
-        <div>
-            <label for="sleep_hours">하루 평균 수면 시간 (시간):</label>
-            <input type="number" step="0.5" id="sleep_hours" value="7" required>
-        </div>
-        <div>
-            <label for="exercise_frequency">일주일 평균 운동 횟수 (회)(30분이상):</label>
-            <input type="number" id="exercise_frequency" value="3" required>
-        </div>
-        <div>
-            <label for="mental_health_rating">정신건강 상태 점수 (1~10):</label>
-            <input type="number" id="mental_health_rating" min="1" max="10" value="7" required>
-        </div>
-        <button type="submit">진단하기</button>
-    </form>
 
-    <div id="result-display" class="result"></div>
+    <h2>선형 탐색(List) vs 이진 탐색(Tree) 성능 비교</h2>
+    
+    <div class="controls">
+        <input type="number" id="targetValue" placeholder="찾을 숫자 (예: 150)" value="150">
+        <button id="searchBtn" onclick="startComparison()">비교 탐색 시작</button>
+        <button onclick="resetAll()">초기화</button>
+    </div>
+
+    <div class="dashboard">
+        <div class="stat-box list-stat">
+            <div class="stat-title">리스트 탐색 횟수 (처음부터 확인)</div>
+            <div class="stat-value" id="list-count">0 회</div>
+            <div id="list-msg" style="font-size: 13px; color: #64748b; margin-top: 5px; height: 15px;"></div>
+        </div>
+        <div class="stat-box tree-stat">
+            <div class="stat-title">이진 트리 탐색 횟수 (절반씩 버림)</div>
+            <div class="stat-value" id="tree-count">0 회</div>
+            <div id="tree-msg" style="font-size: 13px; color: #64748b; margin-top: 5px; height: 15px;"></div>
+        </div>
+    </div>
+
+    <div id="list-container"></div>
+    
+    <div id="tree-wrapper">
+        <canvas id="treeCanvas" width="1000" height="450"></canvas>
+        <div id="treeNodes"></div>
+    </div>
 
     <script>
-        function runDiagnosis() {
-            // 1. 기준값 설정 (자바스크립트 객체로)
-            const criteria = {
-                study_hours_per_day: { threshold: 3, feedback: '공부 시간이 부족합니다. 하루 3시간 이상을 목표로 계획적으로 학습해 보세요.' },
-                sleep_hours: { threshold: 6, feedback: '수면 시간이 부족합니다. 하루 6시간 이상의 수면이 집중력에 도움이 됩니다.' },
-                exercise_frequency: { threshold: 3, feedback: '운동량이 적습니다. 주 3회 이상 가벼운 운동을 추천합니다.' },
-                mental_health_rating: { threshold: 7, feedback: '정신 건강 상태가 낮습니다. 스트레스 해소와 마음 건강 관리가 필요합니다.' }
-            };
+        // 21개의 정렬된 데이터 생성 (10, 20, 30 ... 210)
+        const dataSet = Array.from({length: 21}, (_, i) => (i + 1) * 10);
+        let bstRoot = null;
 
-            // 2. 사용자 입력값 가져오기 (id로 접근)
-            const userData = {
-                study_hours_per_day: parseFloat(document.getElementById('study_hours_per_day').value),
-                sleep_hours: parseFloat(document.getElementById('sleep_hours').value),
-                exercise_frequency: parseInt(document.getElementById('exercise_frequency').value),
-                mental_health_rating: parseInt(document.getElementById('mental_health_rating').value)
-            };
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-            // 3. 피드백 생성 (파이썬 로직과 동일)
-            let feedback = [];
-            for (const key in criteria) {
-                if (userData[key] < criteria[key].threshold) {
-                    feedback.push(criteria[key].feedback);
-                }
-            }
-
-            if (feedback.length === 0) {
-                feedback.push("👍 모든 생활 습관이 성적 향상에 긍정적인 기준을 만족하고 있습니다!");
-            }
-
-            // 4. 결과를 HTML로 만들어 화면에 표시
-            const resultDiv = document.getElementById('result-display');
-            let resultHTML = '<h2>[진단 결과]</h2><ul>';
-            for (const item of feedback) {
-                resultHTML += `<li>${item}</li>`;
-            }
-            resultHTML += '</ul>';
-            
-            resultDiv.innerHTML = resultHTML;
+        // 1. 트리 구조 생성 (정렬된 배열을 완벽하게 균형 잡힌 트리로 변환)
+        function buildBST(arr, start, end) {
+            if (start > end) return null;
+            const mid = Math.floor((start + end) / 2);
+            const node = { val: arr[mid], left: null, right: null, x: 0, y: 0 };
+            node.left = buildBST(arr, start, mid - 1);
+            node.right = buildBST(arr, mid + 1, end);
+            return node;
         }
+
+        // 2. 트리의 화면 내 X, Y 좌표 계산
+        function calculatePositions(node, x, y, horizontalOffset) {
+            if (!node) return;
+            node.x = x;
+            node.y = y;
+            calculatePositions(node.left, x - horizontalOffset, y + 75, horizontalOffset * 0.5);
+            calculatePositions(node.right, x + horizontalOffset, y + 75, horizontalOffset * 0.5);
+        }
+
+        // 3. 캔버스에 간선 그리기 & DOM에 노드 그리기
+        function renderTree() {
+            const canvas = document.getElementById('treeCanvas');
+            const ctx = canvas.getContext('2d');
+            const nodesContainer = document.getElementById('treeNodes');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            nodesContainer.innerHTML = '';
+
+            function draw(node) {
+                if (!node) return;
+                
+                // 선 그리기 (자식이 있다면)
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#cbd5e1';
+                if (node.left) {
+                    ctx.beginPath(); ctx.moveTo(node.x, node.y); ctx.lineTo(node.left.x, node.left.y); ctx.stroke();
+                    draw(node.left);
+                }
+                if (node.right) {
+                    ctx.beginPath(); ctx.moveTo(node.x, node.y); ctx.lineTo(node.right.x, node.right.y); ctx.stroke();
+                    draw(node.right);
+                }
+
+                // 노드(div) 추가
+                const el = document.createElement('div');
+                el.className = 'tree-node';
+                el.id = 'tree-node-' + node.val;
+                el.innerText = node.val;
+                el.style.left = node.x + 'px';
+                el.style.top = node.y + 'px';
+                nodesContainer.appendChild(el);
+            }
+            draw(bstRoot);
+        }
+
+        // 4. 리스트 렌더링
+        function renderList() {
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+            dataSet.forEach(val => {
+                const el = document.createElement('div');
+                el.className = 'list-item';
+                el.id = 'list-node-' + val;
+                el.innerText = val;
+                container.appendChild(el);
+            });
+        }
+
+        // 초기화 실행
+        function init() {
+            bstRoot = buildBST(dataSet, 0, dataSet.length - 1);
+            calculatePositions(bstRoot, 500, 40, 240); // Root at (500, 40)
+            renderTree();
+            renderList();
+        }
+
+        function resetAll() {
+            document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active-list', 'found-list'));
+            document.querySelectorAll('.tree-node').forEach(el => el.classList.remove('active-tree', 'found-tree'));
+            document.getElementById('list-count').innerText = "0 회";
+            document.getElementById('tree-count').innerText = "0 회";
+            document.getElementById('list-msg').innerText = "";
+            document.getElementById('tree-msg').innerText = "";
+        }
+
+        // --- 탐색 로직 및 애니메이션 ---
+        async function startComparison() {
+            const targetStr = document.getElementById('targetValue').value;
+            if (!targetStr) return;
+            const target = parseInt(targetStr);
+            
+            document.getElementById('searchBtn').disabled = true;
+            resetAll();
+
+            // 리스트 탐색과 트리 탐색을 동시에 실행
+            await Promise.all([
+                searchList(target),
+                searchTree(target)
+            ]);
+
+            document.getElementById('searchBtn').disabled = false;
+        }
+
+        async function searchList(target) {
+            let count = 0;
+            const msgEl = document.getElementById('list-msg');
+            const countEl = document.getElementById('list-count');
+
+            for (let i = 0; i < dataSet.length; i++) {
+                count++;
+                countEl.innerText = count + " 회";
+                const val = dataSet[i];
+                const el = document.getElementById('list-node-' + val);
+                
+                el.classList.add('active-list');
+                msgEl.innerText = `${val} 확인 중...`;
+                await sleep(200); // 리스트는 빠르니까 짧은 대기 시간
+
+                if (val === target) {
+                    el.classList.remove('active-list');
+                    el.classList.add('found-list');
+                    msgEl.innerText = "탐색 완료!";
+                    return;
+                }
+                el.classList.remove('active-list');
+            }
+            msgEl.innerText = "값을 찾을 수 없음";
+        }
+
+        async function searchTree(target) {
+            let count = 0;
+            let current = bstRoot;
+            const msgEl = document.getElementById('tree-msg');
+            const countEl = document.getElementById('tree-count');
+
+            while (current) {
+                count++;
+                countEl.innerText = count + " 회";
+                const el = document.getElementById('tree-node-' + current.val);
+                
+                el.classList.add('active-tree');
+                await sleep(800); // 트리는 이동 경로를 보기 위해 긴 대기 시간
+
+                if (current.val === target) {
+                    el.classList.remove('active-tree');
+                    el.classList.add('found-tree');
+                    msgEl.innerText = "탐색 완료!";
+                    return;
+                }
+
+                if (target < current.val) {
+                    msgEl.innerText = `${target} < ${current.val} (왼쪽 이동)`;
+                    current = current.left;
+                } else {
+                    msgEl.innerText = `${target} > ${current.val} (오른쪽 이동)`;
+                    current = current.right;
+                }
+                
+                el.classList.remove('active-tree');
+            }
+            msgEl.innerText = "값을 찾을 수 없음";
+        }
+
+        // 페이지 로드 시 초기화
+        window.onload = init;
     </script>
 </body>
 </html>
